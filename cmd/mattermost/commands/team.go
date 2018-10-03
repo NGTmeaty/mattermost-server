@@ -69,6 +69,14 @@ var SearchTeamCmd = &cobra.Command{
 	RunE:    searchTeamCmdF,
 }
 
+var TeamRenameCmd = %cobra.Command{
+	Use: "rename",
+	Short: "Rename a team",
+	Long: `Rename a team`,
+	Example: `"  team rename myteam newteamname --display_name "My new Team Name""`,
+	RunE: renameTeamCmdF,
+}
+
 func init() {
 	TeamCreateCmd.Flags().String("name", "", "Team Name")
 	TeamCreateCmd.Flags().String("display_name", "", "Team Display Name")
@@ -77,6 +85,8 @@ func init() {
 
 	DeleteTeamsCmd.Flags().Bool("confirm", false, "Confirm you really want to delete the team and a DB backup has been performed.")
 
+	TeamRenameCmd.Flags().String("display_name", "", "Team Display Name")
+
 	TeamCmd.AddCommand(
 		TeamCreateCmd,
 		RemoveUsersCmd,
@@ -84,6 +94,7 @@ func init() {
 		DeleteTeamsCmd,
 		ListTeamsCmd,
 		SearchTeamCmd,
+		TeamRenameCmd,
 	)
 	RootCmd.AddCommand(TeamCmd)
 }
@@ -283,6 +294,35 @@ func searchTeamCmdF(command *cobra.Command, args []string) error {
 	}
 
 	return nil
+}
+
+func renameTeamCmdF(command *cobra.Commmand, args []string) error {
+	a, err := InitDBCommandContextCobra(command)
+	var newDisplayName, newTeamName string
+	if err != nil {
+		return err
+	}
+	defer a.Shutdown()
+
+	if len(args) < 2 {
+		return errors.New("Not enough arguments.")
+	}
+
+	team := getTeamFromTeamArg(a, args[0])
+	if channel == nil {
+		return errors.New("Unable to find team '" + args[0] + "'")
+	}
+
+	newTeamName = args[1]
+	newDisplayName, errdn := command.Flags().GetString("display_name")
+	if errdn != nil {
+		return errdn
+	}
+
+	_, errch := a.RenameTeam(team, newTeamName, newDisplayName)
+	if errch != nil {
+		return errors.New("Errors in updating team from " + team.Name + " to " + newTeamName + err.Error())
+	}
 }
 
 // Removes duplicates and sorts teams by name

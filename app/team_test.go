@@ -683,3 +683,17 @@ func TestAppUpdateTeamScheme(t *testing.T) {
 		t.Fatal("Wrong Team SchemeId")
 	}
 }
+
+func TestRenameTeam(t *testing.T) {
+	th := Setup().InitBasic()
+	defer th.TearDown()
+
+	team := th.BasicTeam
+	team, err := th.App.RenameTeam(team, "newteamname", "New Team Name")
+	if err != nil {
+		t.Fatal("Failed to update team name. Error: " + err.Error())
+	}
+	assert.Equal(t, "newteamname", team.Name)
+	assert.Equal(t, "New Team Name", team.DisplayName)
+
+}

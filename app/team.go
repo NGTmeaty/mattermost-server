@@ -1188,3 +1188,16 @@ func (a *App) RemoveTeamIcon(teamId string) *model.AppError {
 
 	return nil
 }
+
+func (a *App) RenameTeam(team *model.Team, newTeamName string, newDisplayName string) (*model.Team, *model.AppError) {
+	team.Name = newTeamName
+	if newTeamName != "" {
+		team.DisplayName = newDisplayName
+	}
+	// requires unsanitized as it's impossible to update the name or another method will have to be used?
+	newTeam, err := a.UpdateTeam(team)
+	if err != nil {
+		return nil, err
+	}
+	return newTeam, nil
+}

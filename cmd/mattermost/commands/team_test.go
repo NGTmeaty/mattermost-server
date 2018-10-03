@@ -129,3 +129,15 @@ func TestSearchTeamsByDisplayName(t *testing.T) {
 		t.Fatal("should have the created team")
 	}
 }
+
+func TestRenameTeam(t *testing.T) {
+	th := api4.Setup().InitBasic()
+	defer th.TearDown()
+
+	team := th.BasicTeam
+	CheckCommmand(t, "team", "rename", team.Name, "newteamname", "--display_name", "New Team Name")
+
+	updatedTeam, _ := th.App.GetApp(team.Id)
+	assert.Equal(t, "newteamname", updatedTeam.Name)
+	assert.Equal(t, "New Team Name", updatedTeam.DisplayName)
+}
